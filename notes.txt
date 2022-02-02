@@ -1,0 +1,26 @@
+from sklearn.metrics import classification_report,confusion_matrix
+
+new_feat = np.random.normal(size = x.shape[0])
+
+x['new_feat'] = new_feat
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.33, random_state=42)
+
+new_tr_model = DecisionTreeClassifier()
+new_tr_model.fit(x_train, y_train)
+
+predictions = new_tr_model.predict(x_test)
+print(classification_report(y_test,predictions))
+
+print(confusion_matrix(y_test,predictions))
+
+p_importance = permutation_importance(new_tr_model, x_train, y_train, n_repeats=100, random_state=12)
+
+p_importances = p_importance.importances_mean
+perm_sort = p_importances.argsort()
+
+perm_imp = pd.DataFrame({"features":x_train.columns[perm_sort], "importance":p_importances[perm_sort]})
+perm_imp['features'] = pd.Categorical(perm_imp['features'], categories=perm_imp['features'], ordered=True)
+
+# plot feature importance barchart
+ggplot(perm_imp) + geom_col(aes(x = 'features', y = 'importance')) + coord_flip() + ylab('') + xlab('') + theme_bw()
